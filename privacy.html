@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Enigma 2.0 – Datenschutzerklärung</title>
+  <style>
+    :root {
+      color-scheme: light dark;
+      --text: #1a1a1a;
+      --muted: #555;
+      --bg: #f8fafc;
+      --card: #ffffff;
+      --accent: #0f766e;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --text: #e7e9ea;
+        --muted: #9ca3af;
+        --bg: #0f172a;
+        --card: #111827;
+        --accent: #2dd4bf;
+      }
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+      line-height: 1.6;
+      color: var(--text);
+      background: var(--bg);
+    }
+
+    main {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 32px 20px 48px;
+    }
+
+    .card {
+      background: var(--card);
+      border-radius: 12px;
+      padding: 28px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+    }
+
+    h1, h2 { line-height: 1.25; }
+    h1 { margin-top: 0; font-size: 1.75rem; }
+    h2 { margin-top: 1.75rem; font-size: 1.1rem; color: var(--accent); }
+    p, li { color: var(--text); }
+    .muted { color: var(--muted); font-size: 0.95rem; }
+    ul { padding-left: 1.25rem; }
+    hr { border: 0; border-top: 1px solid rgba(127, 127, 127, 0.25); margin: 2rem 0; }
+  </style>
+</head>
+<body>
+  <main>
+    <div class="card">
+      <h1>Datenschutzerklärung – Enigma 2.0</h1>
+      <p class="muted">Stand: 6. Juli 2026</p>
+
+      <p>
+        Enigma 2.0 ist ein Firefox-Addon zur lokalen Textverschlüsselung.
+        Der Schutz deiner Daten hat Priorität: Es werden keine personenbezogenen Daten
+        an den Entwickler oder Dritte übertragen.
+      </p>
+
+      <h2>1. Verantwortlicher</h2>
+      <p>
+        Krayzen<br>
+        <a href="mailto:krayzen@gmx.de">krayzen@gmx.de</a>
+      </p>
+
+      <h2>2. Welche Daten verarbeitet das Addon?</h2>
+      <p>Enigma 2.0 verarbeitet ausschließlich Daten lokal in deinem Browser:</p>
+      <ul>
+        <li><strong>Passwort</strong> – optional für die aktuelle Browser-Sitzung gespeichert</li>
+        <li><strong>Einstellungen</strong> – z.&nbsp;B. ob Auto-Entschlüsselung aktiv ist</li>
+        <li><strong>Texte auf Webseiten</strong> – nur wenn du eine Verschlüsselungs- oder Entschlüsselungsaktion ausführst</li>
+      </ul>
+      <p>
+        Das Addon erhebt kein Nutzungsprofil, keine Telemetrie und keine Analytics.
+      </p>
+
+      <h2>3. Wo werden Daten gespeichert?</h2>
+      <ul>
+        <li>
+          <strong>browser.storage.session</strong> – Passwort nur für die laufende Browser-Sitzung
+          (wenn „Passwort merken“ aktiviert ist)
+        </li>
+        <li>
+          <strong>browser.storage.local</strong> – lokale Einstellungen wie Auto-Entschlüsselung
+        </li>
+      </ul>
+      <p>
+        Alle Daten verbleiben auf deinem Gerät. Es gibt keinen Cloud-Server und keine Kontoverknüpfung.
+      </p>
+
+      <h2>4. Wer hat Zugriff auf die Daten?</h2>
+      <p>
+        Nur du auf deinem Gerät. Enigma 2.0 sendet keine Daten an externe Server.
+        Verschlüsselte Texte können für andere sichtbar sein, wenn du sie z.&nbsp;B. in sozialen Netzwerken
+        veröffentlichst – das ist beabsichtigt und Teil der Nutzung.
+      </p>
+
+      <h2>5. Verschlüsselung</h2>
+      <p>
+        Die Verschlüsselung erfolgt clientseitig mit AES-GCM (256 Bit) und PBKDF2 (SHA-256).
+        Schlüssel werden aus deinem Passwort abgeleitet. Ohne Passwort ist eine Entschlüsselung nicht möglich.
+      </p>
+
+      <h2>6. Berechtigungen</h2>
+      <ul>
+        <li><strong>activeTab</strong> – Bearbeitung von Text auf der aktuell geöffneten Seite</li>
+        <li><strong>contextMenus</strong> – Einträge im Rechtsklick-Menü</li>
+        <li><strong>storage</strong> – lokale Speicherung von Einstellungen und Sitzungs-Passwort</li>
+        <li><strong>notifications</strong> – Hinweis, wenn kein Passwort gesetzt ist</li>
+        <li><strong>content_scripts auf Webseiten</strong> – nur zur Textbearbeitung nach deiner Aktion</li>
+      </ul>
+
+      <h2>7. Deine Rechte</h2>
+      <p>
+        Du kannst gespeicherte Daten jederzeit löschen, indem du das Addon deinstallierst
+        oder die Browser-Sitzung beendest. Bei Fragen zum Datenschutz erreichst du mich unter
+        <a href="mailto:krayzen@gmx.de">krayzen@gmx.de</a>.
+      </p>
+
+      <h2>8. Änderungen</h2>
+      <p>
+        Diese Datenschutzerklärung kann bei Bedarf aktualisiert werden.
+        Die aktuelle Version ist unter der URL veröffentlicht, die im Firefox Add-ons Store angegeben ist.
+      </p>
+
+      <hr>
+
+      <h1>Privacy Policy – Enigma 2.0</h1>
+      <p class="muted">Last updated: July 6, 2026</p>
+
+      <p>
+        Enigma 2.0 is a Firefox add-on for local text encryption.
+        It does not collect, sell, or transmit personal data to the developer or third parties.
+      </p>
+
+      <h2>Data processed locally</h2>
+      <ul>
+        <li>Optional session password</li>
+        <li>Local settings (e.g. auto-decrypt preference)</li>
+        <li>Page text only when you explicitly encrypt or decrypt</li>
+      </ul>
+
+      <h2>No remote data collection</h2>
+      <p>
+        The add-on does not use analytics, telemetry, or external servers.
+        Encryption is performed in the browser using AES-GCM and PBKDF2.
+      </p>
+
+      <h2>Contact</h2>
+      <p>Krayzen – <a href="mailto:krayzen@gmx.de">krayzen@gmx.de</a></p>
+    </div>
+  </main>
+</body>
+</html>
