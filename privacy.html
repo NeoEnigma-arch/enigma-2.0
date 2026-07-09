@@ -54,111 +54,178 @@
     .muted { color: var(--muted); font-size: 0.95rem; }
     ul { padding-left: 1.25rem; }
     hr { border: 0; border-top: 1px solid rgba(127, 127, 127, 0.25); margin: 2rem 0; }
+    a { color: var(--accent); }
   </style>
 </head>
 <body>
   <main>
     <div class="card">
       <h1>Datenschutzerklärung – Enigma 2.0</h1>
-      <p class="muted">Stand: 6. Juli 2026</p>
+      <p class="muted">Stand: 9. Juli 2026 · Version 1.5.2</p>
 
       <p>
-        Enigma 2.0 ist ein Firefox-Addon zur lokalen Textverschlüsselung.
-        Der Schutz deiner Daten hat Priorität: Es werden keine personenbezogenen Daten
-        an den Entwickler oder Dritte übertragen.
+        <strong>Enigma 2.0</strong> (Firefox-Addon, Projektname: text-chiffrierer) verschlüsselt
+        und entschlüsselt Texte ausschließlich lokal in deinem Browser. Der Schutz deiner Daten
+        hat Priorität: Es werden keine personenbezogenen Daten an den Entwickler, an Server oder
+        an Dritte übertragen.
       </p>
 
       <h2>1. Verantwortlicher</h2>
       <p>
         Krayzen<br>
-        <a href="mailto:krayzen@gmx.de">krayzen@gmx.de</a>
+        E-Mail: <a href="mailto:krayzen@gmx.de">krayzen@gmx.de</a><br>
+        GitHub: <a href="https://github.com/NeoEnigma-arch/enigma-2.0">NeoEnigma-arch/enigma-2.0</a>
       </p>
 
       <h2>2. Welche Daten verarbeitet das Addon?</h2>
-      <p>Enigma 2.0 verarbeitet ausschließlich Daten lokal in deinem Browser:</p>
+      <p>Enigma 2.0 verarbeitet nur Daten, die für die Nutzung des Addons erforderlich sind – und nur lokal auf deinem Gerät:</p>
       <ul>
-        <li><strong>Passwort</strong> – optional für die aktuelle Browser-Sitzung gespeichert</li>
-        <li><strong>Einstellungen</strong> – z.&nbsp;B. ob Auto-Entschlüsselung aktiv ist</li>
-        <li><strong>Texte auf Webseiten</strong> – nur wenn du eine Verschlüsselungs- oder Entschlüsselungsaktion ausführst</li>
+        <li><strong>Passwort</strong> – optional für die aktuelle Browser-Sitzung gespeichert (wenn „Passwort merken“ aktiviert ist)</li>
+        <li><strong>Einstellungen</strong> – z.&nbsp;B. ob die Auto-Entschlüsselung aktiv ist und welche Sprache die Oberfläche nutzt</li>
+        <li><strong>Texte auf Webseiten</strong> – nur wenn du eine Verschlüsselungs- oder Entschlüsselungsaktion ausführst oder die optionale Auto-Entschlüsselung beim Laden einer Seite greift</li>
       </ul>
       <p>
-        Das Addon erhebt kein Nutzungsprofil, keine Telemetrie und keine Analytics.
+        Das Addon erhebt <strong>kein</strong> Nutzungsprofil, keine Telemetrie, keine Analytics
+        und keine Kontodaten. Im Firefox-Manifest ist <code>data_collection_permissions: none</code> gesetzt.
       </p>
 
       <h2>3. Wo werden Daten gespeichert?</h2>
       <ul>
         <li>
-          <strong>browser.storage.session</strong> – Passwort nur für die laufende Browser-Sitzung
-          (wenn „Passwort merken“ aktiviert ist)
+          <strong>browser.storage.session</strong> – Passwort und die Einstellung „Passwort merken“
+          nur für die laufende Browser-Sitzung
         </li>
         <li>
-          <strong>browser.storage.local</strong> – lokale Einstellungen wie Auto-Entschlüsselung
+          <strong>browser.storage.local</strong> – lokale Einstellungen: Auto-Entschlüsselung
+          (<code>autoDecrypt</code>) und Sprachauswahl (<code>uiLocale</code>)
         </li>
       </ul>
       <p>
-        Alle Daten verbleiben auf deinem Gerät. Es gibt keinen Cloud-Server und keine Kontoverknüpfung.
+        Alle gespeicherten Daten verbleiben auf deinem Gerät. Es gibt keinen Cloud-Server,
+        kein Benutzerkonto und keine Synchronisation mit dem Entwickler.
       </p>
 
       <h2>4. Wer hat Zugriff auf die Daten?</h2>
       <p>
         Nur du auf deinem Gerät. Enigma 2.0 sendet keine Daten an externe Server.
-        Verschlüsselte Texte können für andere sichtbar sein, wenn du sie z.&nbsp;B. in sozialen Netzwerken
-        veröffentlichst – das ist beabsichtigt und Teil der Nutzung.
+        Die Verschlüsselung und Entschlüsselung erfolgt vollständig clientseitig im Browser.
+      </p>
+      <p>
+        <strong>Hinweis:</strong> Verschlüsselte Texte können für andere sichtbar sein, wenn du sie
+        z.&nbsp;B. in sozialen Netzwerken veröffentlichst – das ist beabsichtigt. Ohne das richtige
+        Passwort sind sie jedoch nicht lesbar.
       </p>
 
       <h2>5. Verschlüsselung</h2>
       <p>
-        Die Verschlüsselung erfolgt clientseitig mit AES-GCM (256 Bit) und PBKDF2 (SHA-256).
-        Schlüssel werden aus deinem Passwort abgeleitet. Ohne Passwort ist eine Entschlüsselung nicht möglich.
+        Die Verschlüsselung erfolgt clientseitig mit <strong>AES-GCM (256 Bit)</strong> und
+        <strong>PBKDF2 (SHA-256, 250.000 Iterationen)</strong>. Für jede Verschlüsselung werden
+        ein neuer Salt und ein neuer IV erzeugt. Schlüssel werden ausschließlich aus deinem Passwort
+        abgeleitet. Ohne Passwort ist eine Entschlüsselung nicht möglich.
       </p>
 
       <h2>6. Berechtigungen</h2>
+      <p>Das Addon benötigt folgende Firefox-Berechtigungen:</p>
       <ul>
-        <li><strong>activeTab</strong> – Bearbeitung von Text auf der aktuell geöffneten Seite</li>
-        <li><strong>contextMenus</strong> – Einträge im Rechtsklick-Menü</li>
-        <li><strong>storage</strong> – lokale Speicherung von Einstellungen und Sitzungs-Passwort</li>
-        <li><strong>notifications</strong> – Hinweis, wenn kein Passwort gesetzt ist</li>
-        <li><strong>content_scripts auf Webseiten</strong> – nur zur Textbearbeitung nach deiner Aktion</li>
+        <li><strong>activeTab</strong> – Bearbeitung von Text auf der aktuell geöffneten Seite nach deiner Aktion</li>
+        <li><strong>contextMenus</strong> – Einträge „Auswahl verschlüsseln“ und „Auswahl entschlüsseln“ im Rechtsklick-Menü</li>
+        <li><strong>storage</strong> – lokale Speicherung von Einstellungen und optionalem Sitzungs-Passwort</li>
+        <li><strong>notifications</strong> – einmaliger lokaler Hinweis, wenn kein Passwort gesetzt ist</li>
+        <li><strong>Content Scripts auf Webseiten</strong> – nur zur Textbearbeitung nach deiner ausdrücklichen Aktion oder bei aktivierter Auto-Entschlüsselung; keine Hintergrund-Datenerhebung</li>
       </ul>
 
-      <h2>7. Deine Rechte</h2>
+      <h2>7. Rechtsgrundlage (DSGVO)</h2>
       <p>
-        Du kannst gespeicherte Daten jederzeit löschen, indem du das Addon deinstallierst
-        oder die Browser-Sitzung beendest. Bei Fragen zum Datenschutz erreichst du mich unter
-        <a href="mailto:krayzen@gmx.de">krayzen@gmx.de</a>.
+        Die Verarbeitung erfolgt auf Grundlage von Art.&nbsp;6 Abs.&nbsp;1 lit.&nbsp;b DSGVO
+        (Erfüllung der Nutzung des Addons) sowie Art.&nbsp;6 Abs.&nbsp;1 lit.&nbsp;f DSGVO
+        (berechtigtes Interesse an der technisch fehlerfreien Bereitstellung lokal gespeicherter Einstellungen).
+        Da keine Daten an den Entwickler übermittelt werden, ist keine Einwilligung nach Art.&nbsp;6 Abs.&nbsp;1 lit.&nbsp;a DSGVO erforderlich.
       </p>
 
-      <h2>8. Änderungen</h2>
+      <h2>8. Speicherdauer</h2>
+      <ul>
+        <li><strong>Sitzungs-Passwort</strong> – wird gelöscht, wenn du die Browser-Sitzung beendest oder „Passwort merken“ deaktivierst</li>
+        <li><strong>Lokale Einstellungen</strong> – bleiben gespeichert, bis du sie änderst, das Addon deinstallierst oder die Browser-Daten löschst</li>
+        <li><strong>Webseitentexte</strong> – werden nicht dauerhaft vom Addon gespeichert; sie existieren nur auf der jeweiligen Webseite, bis du sie änderst oder die Seite neu lädst</li>
+      </ul>
+
+      <h2>9. Deine Rechte</h2>
+      <p>Du hast nach der DSGVO insbesondere folgende Rechte:</p>
+      <ul>
+        <li><strong>Auskunft</strong> über die lokal gespeicherten Daten (diese findest du in den Firefox-Addon-Einstellungen bzw. im Browser-Speicher)</li>
+        <li><strong>Löschung</strong> – durch Deaktivieren von „Passwort merken“, Beenden der Sitzung, Löschen der Browser-Daten oder Deinstallation des Addons</li>
+        <li><strong>Beschwerde</strong> bei einer Datenschutz-Aufsichtsbehörde</li>
+      </ul>
+      <p>
+        Da keine personenbezogenen Daten an den Entwickler übermittelt werden, können Anfragen zu
+        Auskunft oder Löschung beim Entwickler nur allgemeine Fragen zum Addon betreffen.
+        Kontakt: <a href="mailto:krayzen@gmx.de">krayzen@gmx.de</a>
+      </p>
+
+      <h2>10. Datenübermittlung in Drittländer</h2>
+      <p>
+        Es findet keine Übermittlung personenbezogener Daten in Drittländer statt.
+        Das Addon kommuniziert nicht mit externen Servern.
+      </p>
+
+      <h2>11. Änderungen</h2>
       <p>
         Diese Datenschutzerklärung kann bei Bedarf aktualisiert werden.
-        Die aktuelle Version ist unter der URL veröffentlicht, die im Firefox Add-ons Store angegeben ist.
+        Die jeweils aktuelle Version ist unter der URL veröffentlicht, die im
+        <a href="https://addons.mozilla.org/">Firefox Add-ons Store</a> angegeben ist.
       </p>
 
       <hr>
 
       <h1>Privacy Policy – Enigma 2.0</h1>
-      <p class="muted">Last updated: July 6, 2026</p>
+      <p class="muted">Last updated: July 9, 2026 · Version 1.5.2</p>
 
       <p>
-        Enigma 2.0 is a Firefox add-on for local text encryption.
-        It does not collect, sell, or transmit personal data to the developer or third parties.
+        <strong>Enigma 2.0</strong> (Firefox add-on, project name: text-chiffrierer) encrypts and
+        decrypts text entirely in your browser. It does not collect, sell, or transmit personal data
+        to the developer, servers, or third parties.
       </p>
 
       <h2>Data processed locally</h2>
       <ul>
-        <li>Optional session password</li>
-        <li>Local settings (e.g. auto-decrypt preference)</li>
-        <li>Page text only when you explicitly encrypt or decrypt</li>
+        <li>Optional session password (when “Remember password” is enabled)</li>
+        <li>Local settings: auto-decrypt preference and UI language</li>
+        <li>Page text only when you explicitly encrypt/decrypt or when auto-decrypt is enabled</li>
+      </ul>
+
+      <h2>Storage</h2>
+      <ul>
+        <li><strong>browser.storage.session</strong> – password for the current browser session</li>
+        <li><strong>browser.storage.local</strong> – settings (autoDecrypt, uiLocale)</li>
       </ul>
 
       <h2>No remote data collection</h2>
       <p>
         The add-on does not use analytics, telemetry, or external servers.
-        Encryption is performed in the browser using AES-GCM and PBKDF2.
+        Encryption uses AES-GCM (256-bit) and PBKDF2 (SHA-256, 250,000 iterations) in the browser.
+        Manifest setting: <code>data_collection_permissions: none</code>.
+      </p>
+
+      <h2>Permissions</h2>
+      <ul>
+        <li><strong>activeTab</strong> – modify text on the active page after user action</li>
+        <li><strong>contextMenus</strong> – encrypt/decrypt context menu entries</li>
+        <li><strong>storage</strong> – local settings and optional session password</li>
+        <li><strong>notifications</strong> – local reminder when password is missing</li>
+        <li><strong>Content scripts</strong> – text transformation only after user action or optional auto-decrypt</li>
+      </ul>
+
+      <h2>Your rights</h2>
+      <p>
+        You can delete stored data by ending the session, clearing browser data, or uninstalling
+        the add-on. No personal data is sent to the developer.
       </p>
 
       <h2>Contact</h2>
-      <p>Krayzen – <a href="mailto:krayzen@gmx.de">krayzen@gmx.de</a></p>
+      <p>
+        Krayzen – <a href="mailto:krayzen@gmx.de">krayzen@gmx.de</a><br>
+        <a href="https://github.com/NeoEnigma-arch/enigma-2.0">github.com/NeoEnigma-arch/enigma-2.0</a>
+      </p>
     </div>
   </main>
 </body>
