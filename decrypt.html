@@ -80,16 +80,15 @@
 </head>
 <body>
   <main>
-    <!-- ===== DECRYPT MODE (QR scan: #c=...) ===== -->
     <section id="view-decrypt" class="hidden">
       <h1>Enigma 2.0 – Entschlüsseln</h1>
       <p class="muted">QR-Code erkannt. Gib dasselbe Passwort ein wie im Addon. Alles läuft nur auf diesem Gerät.</p>
 
       <div class="card">
         <label for="password">Passwort</label>
-        <p class="hint">Tippbar – nicht in den Firefox-Einstellungen, sondern hier</p>
+        <p class="hint">Tippbar – nicht in den Firefox-Einstellungen, sondern hier. Genau wie auf dem PC, inkl. Groß/Klein und Leerzeichen.</p>
         <div class="row">
-          <input id="password" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Passwort tippen …">
+          <input id="password" type="text" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="Passwort tippen …">
           <button type="button" class="secondary" id="btn-toggle" style="margin-top:0">Verbergen</button>
         </div>
         <button type="button" id="btn-decrypt">Entschlüsseln</button>
@@ -104,11 +103,10 @@
 
       <div class="card">
         <label for="cipher">Cipher</label>
-        <textarea id="cipher" placeholder="ENC:v1:… oder Matrix-Text"></textarea>
+        <textarea id="cipher" placeholder="ENC:v1:… oder Matrix-/Runen-Text"></textarea>
       </div>
     </section>
 
-    <!-- ===== PRIVACY MODE (default) ===== -->
     <section id="view-privacy">
       <h1>Enigma 2.0 – Datenschutzerklärung</h1>
       <p class="muted">Stand: 2026 · Lokal im Browser, keine Server-Übertragung von Nachrichteninhalten.</p>
@@ -130,286 +128,54 @@
     </section>
   </main>
 
+  <script src="crypto.js"></script>
   <script>
-/* === TextCrypto (same as addon) === */
-const TextCrypto = (() => {
-  const PREFIX_V1 = "ENC:v1:";
-  const PREFIX = "⎔MX2:";
-  const BRAND_PREFIX = "Enigma 2.0";
-  const PBKDF2_ITERATIONS = 250000;
-
-  const MATRIX_ALPHABET = [
-    "ア", "イ", "ウ", "エ", "オ", "カ", "キ", "ク", "ケ", "コ",
-    "サ", "シ", "ス", "セ", "ソ", "タ", "チ", "ツ", "テ", "ト",
-    "ナ", "ニ", "ヌ", "ネ", "ノ", "ハ", "ヒ", "フ", "ヘ", "ホ",
-    "マ", "ミ", "ム", "メ", "モ", "ヤ", "ユ", "ヨ", "ラ", "リ",
-    "ル", "レ", "ロ", "ワ", "ヲ", "ン", "零", "一", "二", "三",
-    "四", "五", "六", "七", "八", "九", "⊕", "⊗", "⌁", "⌇",
-    "⎔", "⎕", "◈", "◇"
-  ].join("");
-
-  const BASE64_ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-  const MATRIX_PADDING = "⌇";
-
-  const base64ToMatrix = new Map(
-    [...BASE64_ALPHABET].map((char, index) => [char, MATRIX_ALPHABET[index]])
-  );
-  const matrixToBase64 = new Map(
-    [...MATRIX_ALPHABET].map((char, index) => [char, BASE64_ALPHABET[index]])
-  );
-  matrixToBase64.set(MATRIX_PADDING, "=");
-
-  const matrixTokenPattern = new RegExp(
-    `[${MATRIX_ALPHABET.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}${MATRIX_PADDING}]+`,
-    "u"
-  );
-
-  function bytesToBase64(bytes) {
-    let binary = "";
-    for (const byte of bytes) {
-      binary += String.fromCharCode(byte);
-    }
-    return btoa(binary);
-  }
-
-  function base64ToBytes(base64) {
-    const binary = atob(base64);
-    const bytes = new Uint8Array(binary.length);
-    for (let i = 0; i < binary.length; i++) {
-      bytes[i] = binary.charCodeAt(i);
-    }
-    return bytes;
-  }
-
-  function encodeMatrixPayload(base64Payload) {
-    let matrixPayload = "";
-
-    for (const char of base64Payload) {
-      if (char === "=") {
-        matrixPayload += MATRIX_PADDING;
-        continue;
-      }
-
-      const mapped = base64ToMatrix.get(char);
-      if (!mapped) {
-        throw new Error("Ungültige Matrix-Kodierung.");
-      }
-
-      matrixPayload += mapped;
-    }
-
-    return matrixPayload;
-  }
-
-  function decodeMatrixPayload(matrixPayload) {
-    let base64Payload = "";
-
-    for (const char of matrixPayload) {
-      const mapped = matrixToBase64.get(char);
-      if (!mapped) {
-        throw new Error("Ungültiger Matrix-Emblem-Block.");
-      }
-
-      base64Payload += mapped;
-    }
-
-    return base64Payload;
-  }
-
-  function stripBrandPrefix(text) {
-    const trimmed = text.trim();
-    if (trimmed.startsWith(`${BRAND_PREFIX}${PREFIX}`)) {
-      return trimmed.slice(BRAND_PREFIX.length);
-    }
-
-    if (trimmed.startsWith(`${BRAND_PREFIX} ${PREFIX}`)) {
-      return trimmed.slice(BRAND_PREFIX.length + 1);
-    }
-
-    if (trimmed.startsWith(BRAND_PREFIX)) {
-      return trimmed.slice(BRAND_PREFIX.length).trimStart();
-    }
-
-    return trimmed;
-  }
-
-  function getPayloadBase64(encryptedText) {
-    const normalized = stripBrandPrefix(encryptedText);
-
-    if (normalized.startsWith(PREFIX_V1)) {
-      return normalized.slice(PREFIX_V1.length);
-    }
-
-    if (normalized.startsWith(PREFIX)) {
-      return decodeMatrixPayload(normalized.slice(PREFIX.length));
-    }
-
-    throw new Error("Kein gültiger verschlüsselter Text.");
-  }
-
-  async function deriveKey(password, salt) {
-    const encoder = new TextEncoder();
-    const keyMaterial = await crypto.subtle.importKey(
-      "raw",
-      encoder.encode(password),
-      "PBKDF2",
-      false,
-      ["deriveKey"]
-    );
-
-    return crypto.subtle.deriveKey(
-      {
-        name: "PBKDF2",
-        salt,
-        iterations: PBKDF2_ITERATIONS,
-        hash: "SHA-256"
-      },
-      keyMaterial,
-      { name: "AES-GCM", length: 256 },
-      false,
-      ["encrypt", "decrypt"]
-    );
-  }
-
-  async function encrypt(plaintext, password) {
-    const encoder = new TextEncoder();
-    const salt = crypto.getRandomValues(new Uint8Array(16));
-    const iv = crypto.getRandomValues(new Uint8Array(12));
-    const key = await deriveKey(password, salt);
-
-    const ciphertext = await crypto.subtle.encrypt(
-      { name: "AES-GCM", iv },
-      key,
-      encoder.encode(plaintext)
-    );
-
-    const payload = {
-      s: bytesToBase64(salt),
-      i: bytesToBase64(iv),
-      c: bytesToBase64(new Uint8Array(ciphertext))
-    };
-
-    const base64Payload = btoa(JSON.stringify(payload));
-    return BRAND_PREFIX + PREFIX + encodeMatrixPayload(base64Payload);
-  }
-
-  async function decrypt(encryptedText, password) {
-    if (!isEncrypted(encryptedText)) {
-      throw new Error("Kein gültiger verschlüsselter Text.");
-    }
-
-    const payload = JSON.parse(atob(getPayloadBase64(encryptedText)));
-    const salt = base64ToBytes(payload.s);
-    const iv = base64ToBytes(payload.i);
-    const ciphertext = base64ToBytes(payload.c);
-    const key = await deriveKey(password, salt);
-
-    const decrypted = await crypto.subtle.decrypt(
-      { name: "AES-GCM", iv },
-      key,
-      ciphertext
-    );
-
-    return new TextDecoder().decode(decrypted);
-  }
-
-  function isEncrypted(text) {
-    if (typeof text !== "string") {
-      return false;
-    }
-
-    const normalized = stripBrandPrefix(text);
-    return normalized.startsWith(PREFIX) || normalized.startsWith(PREFIX_V1);
-  }
-
-  function hasEncryptedContent(text) {
-    return typeof text === "string" && (text.includes(PREFIX) || text.includes(PREFIX_V1));
-  }
-
-  function findTokens(text) {
-    const tokens = [];
-    let index = 0;
-
-    while ((index = text.indexOf(PREFIX_V1, index)) !== -1) {
-      let end = index + PREFIX_V1.length;
-
-      while (end < text.length && /[A-Za-z0-9+/=]/.test(text[end])) {
-        end += 1;
-      }
-
-      tokens.push({
-        start: index,
-        end,
-        cipher: text.slice(index, end)
-      });
-
-      index = end;
-    }
-
-    index = 0;
-    while ((index = text.indexOf(PREFIX, index)) !== -1) {
-      let start = index;
-      const brandAt = index - BRAND_PREFIX.length;
-
-      if (brandAt >= 0 && text.slice(brandAt, index) === BRAND_PREFIX) {
-        start = brandAt;
-      } else if (
-        brandAt - 1 >= 0 &&
-        text.slice(brandAt - 1, index) === `${BRAND_PREFIX} `
-      ) {
-        start = brandAt - 1;
-      }
-
-      let end = index + PREFIX.length;
-      const body = text.slice(end);
-      const match = body.match(matrixTokenPattern);
-
-      if (match) {
-        end += match[0].length;
-      }
-
-      tokens.push({
-        start,
-        end,
-        cipher: text.slice(start, end)
-      });
-
-      index = end;
-    }
-
-    return tokens.sort((a, b) => a.start - b.start);
-  }
-
-  return {
-    encrypt,
-    decrypt,
-    isEncrypted,
-    hasEncryptedContent,
-    findTokens,
-    PREFIX,
-    PREFIX_V1,
-    BRAND_PREFIX
-  };
-})();
-
-/* === Page logic === */
 (function () {
   function $(id) { return document.getElementById(id); }
 
-  function extractCipher() {
-    var raw = "";
+  function maybeDecode(raw) {
+    var s = String(raw || "");
+    if (s.indexOf("%") === -1) return s;
+    try { return decodeURIComponent(s); } catch (e) { return s; }
+  }
+
+  function fromHash() {
+    if (!location.hash) return "";
+    var h = location.hash.replace(/^#/, "");
+    if (h.indexOf("c=") === 0) return maybeDecode(h.slice(2));
+    if (h.indexOf("d=") === 0) return maybeDecode(h.slice(2));
+    return maybeDecode(h);
+  }
+
+  function fromQuery() {
     try {
       var params = new URLSearchParams(location.search);
-      raw = params.get("c") || params.get("d") || params.get("payload") || "";
-    } catch (e) {}
-    if (!raw && location.hash) {
-      var h = location.hash.replace(/^#/, "");
-      if (h.indexOf("c=") === 0) raw = h.slice(2);
-      else if (h.indexOf("d=") === 0) raw = h.slice(2);
-      else raw = h;
+      return params.get("c") || params.get("d") || params.get("payload") || "";
+    } catch (e) {
+      return "";
     }
-    try { raw = decodeURIComponent(raw); } catch (e) {}
+  }
+
+  function looksEncrypted(text) {
+    if (!text) return false;
+    if (typeof TextCrypto !== "undefined" && TextCrypto.isEncrypted) {
+      try { return TextCrypto.isEncrypted(text); } catch (e) {}
+    }
+    return text.indexOf("ENC:v1:") !== -1 || text.indexOf("⎔") !== -1;
+  }
+
+  function extractCipher() {
+    var q = fromQuery();
+    var h = fromHash();
+    var raw = "";
+    if (looksEncrypted(h)) raw = h;
+    else if (looksEncrypted(q)) raw = q;
+    else raw = h || q;
     raw = String(raw || "").replace(/^web\+enigma:\/*/i, "").trim();
+    // Query-Strings machen aus + oft ein Leerzeichen – Base64 braucht das Plus.
+    if (raw.indexOf("ENC:v1:") === 0) {
+      raw = raw.replace(/ /g, "+");
+    }
     return raw;
   }
 
@@ -441,7 +207,10 @@ const TextCrypto = (() => {
     var password = ($("password").value || "").trim();
     if (!cipher) { setStatus("Kein Cipher vorhanden.", "err"); return; }
     if (!password) { setStatus("Bitte Passwort eintippen.", "err"); $("password").focus(); return; }
-    if (typeof TextCrypto === "undefined") { setStatus("Crypto fehlt.", "err"); return; }
+    if (typeof TextCrypto === "undefined") {
+      setStatus("crypto.js fehlt – Datei mit hochladen.", "err");
+      return;
+    }
     setStatus("Entschlüssele …");
     $("btn-decrypt").disabled = true;
     try {
@@ -450,7 +219,7 @@ const TextCrypto = (() => {
       setStatus("Erfolgreich entschlüsselt.", "ok");
     } catch (e) {
       console.error(e);
-      setStatus("Fehlgeschlagen – Passwort prüfen.", "err");
+      setStatus("Fehlgeschlagen – Passwort prüfen (Groß/Klein, Leerzeichen). Falls im Addon ein Datums-Salz an ist, muss der Tag übereinstimmen.", "err");
     } finally {
       $("btn-decrypt").disabled = false;
     }
@@ -485,6 +254,6 @@ const TextCrypto = (() => {
     showPrivacy();
   }
 })();
-</script>
+  </script>
 </body>
 </html>
