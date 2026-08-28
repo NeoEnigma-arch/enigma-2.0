@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Enigma 2.0</title>
+  <style>
+    :root {
+      color-scheme: light dark;
+      --text: #1a1a1a; --muted: #555; --bg: #f8fafc; --card: #ffffff;
+      --accent: #0f766e; --ok: #15803d; --err: #b91c1c; --border: #e2e8f0;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --text: #e7e9ea; --muted: #9ca3af; --bg: #0f172a; --card: #111827;
+        --accent: #2dd4bf; --ok: #4ade80; --err: #f87171; --border: #334155;
+      }
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+      line-height: 1.6;
+      color: var(--text);
+      background: var(--bg);
+    }
+    main { max-width: 720px; margin: 0 auto; padding: 28px 18px 48px; }
+    h1 { margin: 0 0 8px; font-size: 1.5rem; }
+    h2 { margin: 1.4em 0 0.5em; font-size: 1.15rem; }
+    .muted { color: var(--muted); font-size: 0.95rem; }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      margin: 14px 0;
+    }
+    label { display: block; font-weight: 600; margin-bottom: 6px; }
+    .hint { font-size: 0.85rem; color: var(--muted); margin: 0 0 8px; }
+    input, textarea {
+      width: 100%;
+      padding: 12px;
+      font-size: 16px;
+      border: 2px solid var(--accent);
+      border-radius: 10px;
+      background: var(--bg);
+      color: var(--text);
+      font-family: inherit;
+    }
+    textarea { min-height: 88px; font-family: ui-monospace, monospace; font-size: 13px; }
+    .row { display: flex; gap: 8px; }
+    .row input { flex: 1; min-width: 0; }
+    button {
+      display: inline-block;
+      margin-top: 10px;
+      padding: 12px 16px;
+      border: none;
+      border-radius: 10px;
+      background: var(--accent);
+      color: #fff;
+      font-weight: 700;
+      font-size: 1rem;
+      cursor: pointer;
+      min-height: 46px;
+    }
+    button.secondary { background: #475569; }
+    button.ghost { background: transparent; color: var(--accent); border: 1px solid var(--accent); }
+    .status { margin-top: 10px; min-height: 1.3em; }
+    .status.ok { color: var(--ok); }
+    .status.err { color: var(--err); }
+    .result {
+      white-space: pre-wrap;
+      word-break: break-word;
+      font-size: 1.1rem;
+      min-height: 2.5em;
+    }
+    .hidden { display: none !important; }
+    a { color: var(--accent); }
+  </style>
+</head>
+<body>
+  <main>
+    <!-- ===== DECRYPT MODE (QR scan: #c=...) ===== -->
+    <section id="view-decrypt" class="hidden">
+      <h1>Enigma 2.0 – Entschlüsseln</h1>
+      <p class="muted">QR-Code erkannt. Gib dasselbe Passwort ein wie im Addon. Alles läuft nur auf diesem Gerät.</p>
+
+      <div class="card">
+        <label for="password">Passwort</label>
+        <p class="hint">Tippbar – nicht in den Firefox-Einstellungen, sondern hier</p>
+        <div class="row">
+          <input id="password" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Passwort tippen …">
+          <button type="button" class="secondary" id="btn-toggle" style="margin-top:0">Verbergen</button>
+        </div>
+        <button type="button" id="btn-decrypt">Entschlüsseln</button>
+        <p id="status" class="status" aria-live="polite"></p>
+      </div>
+
+      <div class="card">
+        <label>Entschlüsselter Text</label>
+        <div id="result" class="result">—</div>
+        <button type="button" class="secondary" id="btn-copy">Kopieren</button>
+      </div>
+
+      <div class="card">
+        <label for="cipher">Cipher</label>
+        <textarea id="cipher" placeholder="ENC:v1:… oder Matrix-Text"></textarea>
+      </div>
+    </section>
+
+    <!-- ===== PRIVACY MODE (default) ===== -->
+    <section id="view-privacy">
+      <h1>Enigma 2.0 – Datenschutzerklärung</h1>
+      <p class="muted">Stand: 2026 · Lokal im Browser, keine Server-Übertragung von Nachrichteninhalten.</p>
+
+      <div class="card">
+        <h2>Welche Daten?</h2>
+        <p>Enigma 2.0 verschlüsselt und entschlüsselt Text <strong>ausschließlich lokal</strong> auf deinem Gerät. Klartext, Passwort und Cipher verlassen den Browser nicht über dieses Add-on.</p>
+        <h2>Speicherung</h2>
+        <p>Optional kann ein Passwort in der Browser-Sitzung (session storage) und Einstellungen lokal gespeichert werden. Keine Konten, kein Tracking, keine Werbung.</p>
+        <h2>Netzwerk</h2>
+        <p>Das Add-on benötigt Zugriffe auf Webseiten nur, um markierten Text dort zu ersetzen. Es werden keine Analyse-Server kontaktiert.</p>
+        <h2>QR-Codes / Entschlüsselungsseite</h2>
+        <p>Ein gescannter QR kann diese Seite mit Cipher im URL-Fragment (#c=…) öffnen. Das Fragment wird typischerweise <strong>nicht</strong> an den Server gesendet. Entschlüsselung erfolgt im Browser nach Passworteingabe.</p>
+        <h2>Kontakt</h2>
+        <p>GitHub: <a href="https://github.com/NeoEnigma-arch/enigma-2.0">NeoEnigma-arch/enigma-2.0</a></p>
+      </div>
+
+      <p class="muted"><button type="button" class="ghost" id="btn-show-decrypt">Cipher manuell entschlüsseln</button></p>
+    </section>
+  </main>
+
+  <script>
+/* === TextCrypto (same as addon) === */
+const TextCrypto = (() => {
+  const PREFIX_V1 = "ENC:v1:";
+  const PREFIX = "⎔MX2:";
+  const BRAND_PREFIX = "Enigma 2.0";
+  const PBKDF2_ITERATIONS = 250000;
+
+  const MATRIX_ALPHABET = [
+    "ア", "イ", "ウ", "エ", "オ", "カ", "キ", "ク", "ケ", "コ",
+    "サ", "シ", "ス", "セ", "ソ", "タ", "チ", "ツ", "テ", "ト",
+    "ナ", "ニ", "ヌ", "ネ", "ノ", "ハ", "ヒ", "フ", "ヘ", "ホ",
+    "マ", "ミ", "ム", "メ", "モ", "ヤ", "ユ", "ヨ", "ラ", "リ",
+    "ル", "レ", "ロ", "ワ", "ヲ", "ン", "零", "一", "二", "三",
+    "四", "五", "六", "七", "八", "九", "⊕", "⊗", "⌁", "⌇",
+    "⎔", "⎕", "◈", "◇"
+  ].join("");
+
+  const BASE64_ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+  const MATRIX_PADDING = "⌇";
+
+  const base64ToMatrix = new Map(
+    [...BASE64_ALPHABET].map((char, index) => [char, MATRIX_ALPHABET[index]])
+  );
+  const matrixToBase64 = new Map(
+    [...MATRIX_ALPHABET].map((char, index) => [char, BASE64_ALPHABET[index]])
+  );
+  matrixToBase64.set(MATRIX_PADDING, "=");
+
+  const matrixTokenPattern = new RegExp(
+    `[${MATRIX_ALPHABET.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}${MATRIX_PADDING}]+`,
+    "u"
+  );
+
+  function bytesToBase64(bytes) {
+    let binary = "";
+    for (const byte of bytes) {
+      binary += String.fromCharCode(byte);
+    }
+    return btoa(binary);
+  }
+
+  function base64ToBytes(base64) {
+    const binary = atob(base64);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) {
+      bytes[i] = binary.charCodeAt(i);
+    }
+    return bytes;
+  }
+
+  function encodeMatrixPayload(base64Payload) {
+    let matrixPayload = "";
+
+    for (const char of base64Payload) {
+      if (char === "=") {
+        matrixPayload += MATRIX_PADDING;
+        continue;
+      }
+
+      const mapped = base64ToMatrix.get(char);
+      if (!mapped) {
+        throw new Error("Ungültige Matrix-Kodierung.");
+      }
+
+      matrixPayload += mapped;
+    }
+
+    return matrixPayload;
+  }
+
+  function decodeMatrixPayload(matrixPayload) {
+    let base64Payload = "";
+
+    for (const char of matrixPayload) {
+      const mapped = matrixToBase64.get(char);
+      if (!mapped) {
+        throw new Error("Ungültiger Matrix-Emblem-Block.");
+      }
+
+      base64Payload += mapped;
+    }
+
+    return base64Payload;
+  }
+
+  function stripBrandPrefix(text) {
+    const trimmed = text.trim();
+    if (trimmed.startsWith(`${BRAND_PREFIX}${PREFIX}`)) {
+      return trimmed.slice(BRAND_PREFIX.length);
+    }
+
+    if (trimmed.startsWith(`${BRAND_PREFIX} ${PREFIX}`)) {
+      return trimmed.slice(BRAND_PREFIX.length + 1);
+    }
+
+    if (trimmed.startsWith(BRAND_PREFIX)) {
+      return trimmed.slice(BRAND_PREFIX.length).trimStart();
+    }
+
+    return trimmed;
+  }
+
+  function getPayloadBase64(encryptedText) {
+    const normalized = stripBrandPrefix(encryptedText);
+
+    if (normalized.startsWith(PREFIX_V1)) {
+      return normalized.slice(PREFIX_V1.length);
+    }
+
+    if (normalized.startsWith(PREFIX)) {
+      return decodeMatrixPayload(normalized.slice(PREFIX.length));
+    }
+
+    throw new Error("Kein gültiger verschlüsselter Text.");
+  }
+
+  async function deriveKey(password, salt) {
+    const encoder = new TextEncoder();
+    const keyMaterial = await crypto.subtle.importKey(
+      "raw",
+      encoder.encode(password),
+      "PBKDF2",
+      false,
+      ["deriveKey"]
+    );
+
+    return crypto.subtle.deriveKey(
+      {
+        name: "PBKDF2",
+        salt,
+        iterations: PBKDF2_ITERATIONS,
+        hash: "SHA-256"
+      },
+      keyMaterial,
+      { name: "AES-GCM", length: 256 },
+      false,
+      ["encrypt", "decrypt"]
+    );
+  }
+
+  async function encrypt(plaintext, password) {
+    const encoder = new TextEncoder();
+    const salt = crypto.getRandomValues(new Uint8Array(16));
+    const iv = crypto.getRandomValues(new Uint8Array(12));
+    const key = await deriveKey(password, salt);
+
+    const ciphertext = await crypto.subtle.encrypt(
+      { name: "AES-GCM", iv },
+      key,
+      encoder.encode(plaintext)
+    );
+
+    const payload = {
+      s: bytesToBase64(salt),
+      i: bytesToBase64(iv),
+      c: bytesToBase64(new Uint8Array(ciphertext))
+    };
+
+    const base64Payload = btoa(JSON.stringify(payload));
+    return BRAND_PREFIX + PREFIX + encodeMatrixPayload(base64Payload);
+  }
+
+  async function decrypt(encryptedText, password) {
+    if (!isEncrypted(encryptedText)) {
+      throw new Error("Kein gültiger verschlüsselter Text.");
+    }
+
+    const payload = JSON.parse(atob(getPayloadBase64(encryptedText)));
+    const salt = base64ToBytes(payload.s);
+    const iv = base64ToBytes(payload.i);
+    const ciphertext = base64ToBytes(payload.c);
+    const key = await deriveKey(password, salt);
+
+    const decrypted = await crypto.subtle.decrypt(
+      { name: "AES-GCM", iv },
+      key,
+      ciphertext
+    );
+
+    return new TextDecoder().decode(decrypted);
+  }
+
+  function isEncrypted(text) {
+    if (typeof text !== "string") {
+      return false;
+    }
+
+    const normalized = stripBrandPrefix(text);
+    return normalized.startsWith(PREFIX) || normalized.startsWith(PREFIX_V1);
+  }
+
+  function hasEncryptedContent(text) {
+    return typeof text === "string" && (text.includes(PREFIX) || text.includes(PREFIX_V1));
+  }
+
+  function findTokens(text) {
+    const tokens = [];
+    let index = 0;
+
+    while ((index = text.indexOf(PREFIX_V1, index)) !== -1) {
+      let end = index + PREFIX_V1.length;
+
+      while (end < text.length && /[A-Za-z0-9+/=]/.test(text[end])) {
+        end += 1;
+      }
+
+      tokens.push({
+        start: index,
+        end,
+        cipher: text.slice(index, end)
+      });
+
+      index = end;
+    }
+
+    index = 0;
+    while ((index = text.indexOf(PREFIX, index)) !== -1) {
+      let start = index;
+      const brandAt = index - BRAND_PREFIX.length;
+
+      if (brandAt >= 0 && text.slice(brandAt, index) === BRAND_PREFIX) {
+        start = brandAt;
+      } else if (
+        brandAt - 1 >= 0 &&
+        text.slice(brandAt - 1, index) === `${BRAND_PREFIX} `
+      ) {
+        start = brandAt - 1;
+      }
+
+      let end = index + PREFIX.length;
+      const body = text.slice(end);
+      const match = body.match(matrixTokenPattern);
+
+      if (match) {
+        end += match[0].length;
+      }
+
+      tokens.push({
+        start,
+        end,
+        cipher: text.slice(start, end)
+      });
+
+      index = end;
+    }
+
+    return tokens.sort((a, b) => a.start - b.start);
+  }
+
+  return {
+    encrypt,
+    decrypt,
+    isEncrypted,
+    hasEncryptedContent,
+    findTokens,
+    PREFIX,
+    PREFIX_V1,
+    BRAND_PREFIX
+  };
+})();
+
+/* === Page logic === */
+(function () {
+  function $(id) { return document.getElementById(id); }
+
+  function extractCipher() {
+    var raw = "";
+    try {
+      var params = new URLSearchParams(location.search);
+      raw = params.get("c") || params.get("d") || params.get("payload") || "";
+    } catch (e) {}
+    if (!raw && location.hash) {
+      var h = location.hash.replace(/^#/, "");
+      if (h.indexOf("c=") === 0) raw = h.slice(2);
+      else if (h.indexOf("d=") === 0) raw = h.slice(2);
+      else raw = h;
+    }
+    try { raw = decodeURIComponent(raw); } catch (e) {}
+    raw = String(raw || "").replace(/^web\+enigma:\/*/i, "").trim();
+    return raw;
+  }
+
+  function setStatus(msg, kind) {
+    var el = $("status");
+    if (!el) return;
+    el.textContent = msg || "";
+    el.className = "status" + (kind ? " " + kind : "");
+  }
+
+  function showDecrypt(prefill) {
+    $("view-privacy").classList.add("hidden");
+    $("view-decrypt").classList.remove("hidden");
+    document.title = "Enigma 2.0 – Entschlüsseln";
+    if (prefill && $("cipher")) $("cipher").value = prefill;
+    setTimeout(function () {
+      try { $("password").focus(); } catch (e) {}
+    }, 80);
+  }
+
+  function showPrivacy() {
+    $("view-decrypt").classList.add("hidden");
+    $("view-privacy").classList.remove("hidden");
+    document.title = "Enigma 2.0 – Datenschutzerklärung";
+  }
+
+  async function doDecrypt() {
+    var cipher = ($("cipher").value || "").trim() || extractCipher();
+    var password = ($("password").value || "").trim();
+    if (!cipher) { setStatus("Kein Cipher vorhanden.", "err"); return; }
+    if (!password) { setStatus("Bitte Passwort eintippen.", "err"); $("password").focus(); return; }
+    if (typeof TextCrypto === "undefined") { setStatus("Crypto fehlt.", "err"); return; }
+    setStatus("Entschlüssele …");
+    $("btn-decrypt").disabled = true;
+    try {
+      var plain = await TextCrypto.decrypt(cipher, password);
+      $("result").textContent = plain;
+      setStatus("Erfolgreich entschlüsselt.", "ok");
+    } catch (e) {
+      console.error(e);
+      setStatus("Fehlgeschlagen – Passwort prüfen.", "err");
+    } finally {
+      $("btn-decrypt").disabled = false;
+    }
+  }
+
+  var masked = false;
+  $("btn-toggle").addEventListener("click", function () {
+    masked = !masked;
+    $("password").type = masked ? "password" : "text";
+    $("btn-toggle").textContent = masked ? "Anzeigen" : "Verbergen";
+    $("password").focus();
+  });
+  $("btn-decrypt").addEventListener("click", doDecrypt);
+  $("password").addEventListener("keydown", function (e) {
+    if (e.key === "Enter") { e.preventDefault(); doDecrypt(); }
+  });
+  $("btn-copy").addEventListener("click", async function () {
+    var t = $("result").textContent || "";
+    if (!t || t === "—") { setStatus("Kein Ergebnis.", "err"); return; }
+    try {
+      await navigator.clipboard.writeText(t);
+      setStatus("Kopiert.", "ok");
+    } catch (e) { setStatus("Kopieren fehlgeschlagen.", "err"); }
+  });
+  $("btn-show-decrypt").addEventListener("click", function () { showDecrypt(""); });
+
+  var cipher = extractCipher();
+  if (cipher) {
+    showDecrypt(cipher);
+    setStatus("Cipher geladen – Passwort eintippen.");
+  } else {
+    showPrivacy();
+  }
+})();
+</script>
+</body>
+</html>
